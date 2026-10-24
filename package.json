@@ -1,0 +1,5 @@
+{
+  "name": "cockpit-configurator",
+  "private": true,
+  "type": "module"
+}

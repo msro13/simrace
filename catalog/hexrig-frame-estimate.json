@@ -1,0 +1,51 @@
+{
+  "pieces_40x40": 18,
+  "pieces_40x80": 8,
+  "m_40x40": 8.229,
+  "m_40x80": 5.504,
+  "butt_joints": 12,
+  "side_contacts": 23,
+  "free_ends_40x80": 16,
+  "free_ends_40x40": 24,
+  "frame_kg": 32.8,
+  "bom": [
+    {
+      "id": "P4040-CS10",
+      "qty": "8.23 m",
+      "eur": 106.98,
+      "note": "cart price per metre"
+    },
+    {
+      "id": "P4080-CS10",
+      "qty": "5.50 m",
+      "eur": 148.6,
+      "note": "cart price per metre"
+    },
+    {
+      "id": "BR4040-SET",
+      "qty": "24",
+      "eur": 94.32,
+      "note": "2 per butt joint, 12 butt joints"
+    },
+    {
+      "id": "BR4040-SET",
+      "qty": "46",
+      "eur": 180.78,
+      "note": "2 per bolted side contact, 23 contacts"
+    },
+    {
+      "id": "CAP4080",
+      "qty": "16",
+      "eur": 27.84,
+      "note": "free 40x80 ends"
+    },
+    {
+      "id": "CAP4040",
+      "qty": "24",
+      "eur": 19.44,
+      "note": "free 40x40 ends"
+    }
+  ],
+  "total_eur_excl_vat": 577.96,
+  "hardware_eur_excl_vat": 322.38
+}

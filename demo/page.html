@@ -1,0 +1,1098 @@
+<title>Configurador de cockpit</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<script>document.documentElement.lang = 'es';</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script type="importmap">/*@IMPORTMAP@*/</script>
+<style>
+/* Layout: a lit studio stage for the rig beside a machined control panel; on phones the stage sticks to the top and the panel scrolls under it */
+:root {
+  --bg: #e2e6e9;
+  --surface: #f2f4f5;
+  --raised: #ffffff;
+  --stage: #d6dce0;
+  --stage-hi: #eef1f3;
+  --ink: #15191d;
+  --muted: #59636c;
+  --line: #c9d0d6;
+  --track: #cdd4d9;
+  --accent: #c8500e;
+  --accent-ink: #ffffff;
+  --accent-soft: rgb(200 80 14 / .16);
+  --grid: #c0c8ce;
+  --grid-strong: #9fa9b2;
+  --shadow: 0 1px 2px rgb(21 25 29 / .08), 0 6px 16px rgb(21 25 29 / .08);
+  --display: 'Barlow Condensed', 'Arial Narrow', 'Roboto Condensed', system-ui, sans-serif;
+  --body: 'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101316; --surface: #161a1e; --raised: #1f2429; --stage: #0c0f12; --stage-hi: #1c2228;
+    --ink: #e5e9ec; --muted: #9aa4ad; --line: #2b3238; --track: #323a41;
+    --accent: #ff7d33; --accent-ink: #1a0c03; --accent-soft: rgb(255 125 51 / .18);
+    --grid: #1e252b; --grid-strong: #36404a;
+    --shadow: 0 1px 2px rgb(0 0 0 / .45), 0 8px 20px rgb(0 0 0 / .35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101316; --surface: #161a1e; --raised: #1f2429; --stage: #0c0f12; --stage-hi: #1c2228;
+  --ink: #e5e9ec; --muted: #9aa4ad; --line: #2b3238; --track: #323a41;
+  --accent: #ff7d33; --accent-ink: #1a0c03; --accent-soft: rgb(255 125 51 / .18);
+  --grid: #1e252b; --grid-strong: #36404a;
+  --shadow: 0 1px 2px rgb(0 0 0 / .45), 0 8px 20px rgb(0 0 0 / .35);
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 15px/1.45 var(--body); -webkit-font-smoothing: antialiased; }
+button, select, input { font: inherit; color: inherit; }
+
+.app { display: flex; flex-direction: column; min-height: 100%; }
+.top {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.mark { width: 30px; height: 30px; flex: none; color: var(--ink); }
+.brand h1 { margin: 0; font: 700 22px/1 var(--display); letter-spacing: .04em; text-transform: uppercase; }
+.brand p { margin: 3px 0 0; font-size: 13px; color: var(--muted); }
+.top .vat { margin: 0; font: 500 11.5px/1.2 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+
+.work { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 400px; }
+.stage {
+  position: relative; min-width: 0; overflow: hidden; container-type: inline-size;
+  background: radial-gradient(120% 90% at 50% 28%, var(--stage-hi), var(--stage) 72%);
+}
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; outline: none; }
+.panel {
+  min-width: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 26px;
+  padding-block: 20px 28px; padding-left: 22px; padding-right: max(22px, env(safe-area-inset-right, 0px));
+  background: var(--surface); border-left: 1px solid var(--line);
+}
+@media (min-width: 860px) {
+  html, body { height: 100%; }
+  .app { height: 100%; }
+}
+@media (max-width: 859.98px) {
+  .work { display: block; }
+  .stage { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; height: 50svh; min-height: 300px; border-bottom: 1px solid var(--line); }
+  .panel { overflow: visible; border-left: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--stage); }
+}
+@media (max-width: 520px) { .top .vat { display: none; } }
+
+/* Stage overlays */
+.glass { background: color-mix(in srgb, var(--raised) 88%, transparent); box-shadow: var(--shadow); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border-radius: 8px; }
+.stage-msg { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; margin: 0; padding: 24px; text-align: center; color: var(--muted); }
+.stage-msg.is-error { color: var(--ink); max-width: 36ch; margin: auto; }
+.views { position: absolute; z-index: 3; top: 12px; right: max(12px, env(safe-area-inset-right, 0px)); display: flex; gap: 2px; padding: 3px; }
+.views button {
+  border: 0; background: none; cursor: pointer; padding: 8px 11px; border-radius: 5px;
+  font: 600 13px/1 var(--display); letter-spacing: .07em; text-transform: uppercase; color: var(--muted);
+}
+.views button:hover { color: var(--ink); }
+.views button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.views button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.hint { position: absolute; z-index: 1; top: 20px; left: max(16px, env(safe-area-inset-left, 0px)); margin: 0; font-size: 13px; color: var(--muted); pointer-events: none; }
+.pick { position: absolute; z-index: 4; top: 12px; left: max(12px, env(safe-area-inset-left, 0px)); display: flex; align-items: center; gap: 10px; padding: 8px 6px 8px 12px; max-width: calc(100% - 24px); }
+.pick b { display: block; font: 600 15px/1.15 var(--display); letter-spacing: .05em; text-transform: uppercase; }
+.pick span { font: 500 12.5px/1.4 var(--mono); color: var(--muted); }
+.pick span em { font-style: normal; color: var(--accent); }
+.pick button { border: 0; background: none; cursor: pointer; width: 30px; height: 30px; border-radius: 6px; font-size: 20px; line-height: 1; color: var(--muted); }
+.pick button:hover { color: var(--ink); background: var(--bg); }
+.pick button:focus-visible { outline: 2px solid var(--accent); }
+.chip { position: absolute; z-index: 2; left: max(12px, env(safe-area-inset-left, 0px)); bottom: 12px; padding: 8px 12px 9px; }
+.chip b { display: block; font: 700 23px/1 var(--display); letter-spacing: .01em; font-variant-numeric: tabular-nums; }
+.chip span { display: block; margin-top: 3px; font: 500 11.5px/1.2 var(--mono); color: var(--muted); }
+.stage .equip { position: absolute; z-index: 2; right: max(12px, env(safe-area-inset-right, 0px)); bottom: 12px; padding: 8px 10px 8px 12px; font-size: 14px; }
+@container (max-width: 760px) { .hint { display: none; } }
+@container (max-width: 640px) { .pick { top: 58px; } }
+.no-3d .views, .no-3d .equip, .no-3d .hint { display: none; }
+
+/* Panel */
+.panel h2 { margin: 0 0 12px; font: 600 14px/1.1 var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.panel h3 { margin: 4px 0 0; font: 600 14px/1.3 var(--body); }
+.total { display: grid; gap: 8px; }
+.total h2 { margin-bottom: 0; }
+.total-line { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; }
+.total-num { font: 700 46px/1 var(--display); letter-spacing: -.005em; font-variant-numeric: tabular-nums; }
+.total-vat { font-size: 13.5px; color: var(--muted); }
+.kit { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--muted); }
+.kit b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.facts { margin: 0; font: 400 12.5px/1.5 var(--mono); color: var(--muted); }
+.split { display: flex; height: 6px; margin-top: 4px; border-radius: 3px; overflow: hidden; background: var(--grid-strong); }
+.split i { display: block; background: var(--accent); transition: width .25s ease; }
+.split-legend { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0; font-size: 13.5px; color: var(--muted); }
+.split-legend b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.key { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 2px; vertical-align: 1px; }
+.key-prof { background: var(--accent); }
+.key-fit { background: var(--grid-strong); }
+
+.preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.preset-wide { grid-column: 1 / -1; }
+.preset {
+  display: grid; gap: 3px; align-content: start; text-align: left; cursor: pointer;
+  padding: 10px 12px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--raised);
+}
+.preset b { font: 700 17px/1.1 var(--display); letter-spacing: .05em; text-transform: uppercase; }
+.preset span { font-size: 13px; line-height: 1.3; color: var(--muted); }
+.preset:hover { border-color: var(--grid-strong); }
+.preset[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.preset:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.opts { display: grid; gap: 26px; margin: 0; }
+.group { display: grid; gap: 16px; padding-top: 18px; border-top: 1px solid var(--line); }
+.group h2 { margin: 0; }
+.field { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 6px 12px; }
+.field > label, .field > .label { font-weight: 500; }
+.field output { font: 500 13px/1 var(--mono); font-variant-numeric: tabular-nums; }
+.field > input[type="range"], .field > .seg, .field > .select, .field > .swatches { grid-column: 1 / -1; }
+
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 26px; margin: 0; background: transparent; cursor: pointer; --fill: 50%; }
+input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--accent) var(--fill), var(--track) var(--fill)); }
+input[type="range"]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--track); }
+input[type="range"]::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--accent); }
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 22px; margin-top: -9px; border-radius: 3px;
+  border: 1px solid var(--grid-strong); background: linear-gradient(var(--accent), var(--accent)) center / 2px 10px no-repeat, var(--raised);
+  box-shadow: 0 1px 3px rgb(0 0 0 / .22);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 12px; height: 20px; border-radius: 3px;
+  border: 1px solid var(--grid-strong); background: linear-gradient(var(--accent), var(--accent)) center / 2px 10px no-repeat, var(--raised);
+  box-shadow: 0 1px 3px rgb(0 0 0 / .22);
+}
+input[type="range"]:focus-visible { outline: none; }
+input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px var(--accent-soft); border-color: var(--accent); }
+input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px var(--accent-soft); border-color: var(--accent); }
+input[type="range"]:disabled { opacity: .4; cursor: not-allowed; }
+
+.seg { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; padding: 2px; border: 1px solid var(--line); border-radius: 7px; background: var(--bg); }
+.seg input, .swatches input, .switch input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.seg label {
+  display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 34px; padding: 4px 6px;
+  border-radius: 5px; text-align: center; font-size: 14px; font-weight: 500; line-height: 1.15; color: var(--muted); cursor: pointer;
+}
+.seg label:hover { color: var(--ink); }
+.seg input:checked + label { background: var(--ink); color: var(--surface); }
+.seg input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 1px; }
+.seg input:disabled + label { opacity: .35; cursor: not-allowed; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 1px rgb(127 127 127 / .5); }
+
+.select { position: relative; }
+.select select {
+  width: 100%; -webkit-appearance: none; appearance: none; cursor: pointer;
+  padding: 9px 36px 9px 12px; border: 1px solid var(--line); border-radius: 7px; background: var(--raised); font-weight: 500;
+}
+.select::after { content: ""; position: absolute; right: 14px; top: 50%; width: 7px; height: 7px; border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted); transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+.select select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.select select:disabled { opacity: .45; cursor: not-allowed; }
+
+.switch { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; font-weight: 500; }
+.switch .knob { position: relative; flex: none; width: 40px; height: 22px; border-radius: 11px; background: var(--track); transition: background .15s; }
+.switch .knob::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--raised); box-shadow: 0 1px 2px rgb(0 0 0 / .3); transition: transform .15s; }
+.switch input:checked + .knob { background: var(--accent); }
+.switch input:checked + .knob::after { transform: translateX(18px); }
+.switch input:focus-visible + .knob { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.swatches { position: relative; display: flex; flex-wrap: wrap; gap: 12px; padding: 2px 0; }
+.swatches label { position: relative; width: 30px; height: 30px; border-radius: 50%; background: var(--c); cursor: pointer; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .18); }
+.swatches input:checked + label { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink); }
+.swatches input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 5px; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.parts { display: grid; gap: 10px; padding-top: 18px; border-top: 1px solid var(--line); }
+.parts h2 { margin: 0; }
+.plist { list-style: none; margin: 0; padding: 0; }
+.plist li { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: baseline; gap: 2px 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+.plist li:first-child { border-top: 0; }
+.plist .qty { font: 500 13px/1.3 var(--mono); color: var(--muted); text-align: right; }
+.plist .sec { align-self: start; display: flex; justify-content: center; padding-top: 3px; color: var(--muted); }
+.plist .name { min-width: 0; font-weight: 600; }
+.plist .sum { font: 500 13px/1.3 var(--mono); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.plist .sub { grid-column: 2 / -1; min-width: 0; font-size: 13px; line-height: 1.4; color: var(--muted); }
+.plist a { color: inherit; text-decoration: underline; text-decoration-color: var(--grid-strong); text-underline-offset: 2px; }
+.plist a:hover { color: var(--ink); text-decoration-color: currentColor; }
+.plist a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-radius: 2px; }
+.cuts { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.cuts span { padding: 4px 6px; border: 1px solid var(--line); border-radius: 4px; background: var(--raised); font: 500 12px/1 var(--mono); font-variant-numeric: tabular-nums; }
+.notes-lead { margin: 0; font-size: 13.5px; color: var(--muted); }
+.notes { margin: 0; padding-left: 18px; display: grid; gap: 3px; font-size: 14px; }
+.foot { padding-top: 16px; border-top: 1px solid var(--line); font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.foot p { margin: 0 0 8px; max-width: 62ch; }
+.foot p:last-child { margin-bottom: 0; }
+@media (prefers-reduced-motion: reduce) { .split i, .switch .knob, .switch .knob::after { transition: none; } }
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg class="mark" id="mark" viewBox="0 0 40 40" aria-hidden="true"></svg>
+      <div>
+        <h1>Configurador de cockpit</h1>
+        <p>Demo de concepto con piezas y precios de mundoperfil.com</p>
+      </div>
+    </div>
+    <p class="vat">Precios con IVA</p>
+  </header>
+
+  <main class="work">
+    <section class="stage" id="stage" aria-label="Vista 3D">
+      <p class="stage-msg" id="stageMsg">Cargando la vista 3D…</p>
+      <div class="views glass" role="group" aria-label="Cámara">
+        <button type="button" data-view="orbit" aria-pressed="true">Órbita</button>
+        <button type="button" data-view="side" aria-pressed="false">Lateral</button>
+        <button type="button" data-view="top" aria-pressed="false">Superior</button>
+        <button type="button" data-view="driver" aria-pressed="false">Piloto</button>
+      </div>
+      <p class="hint">Arrastra para girar, rueda para hacer zoom, toca un perfil para ver su corte</p>
+      <div class="pick glass" id="pick" hidden>
+        <div><b id="pickName"></b><span id="pickInfo"></span></div>
+        <button type="button" id="pickClose" aria-label="Quitar el perfil seleccionado">×</button>
+      </div>
+      <div class="chip glass" aria-hidden="true"><b id="chipTotal"></b><span id="chipFacts"></span></div>
+      <label class="switch equip glass"><span>Equipamiento</span><input type="checkbox" id="equipment" checked><span class="knob" aria-hidden="true"></span></label>
+    </section>
+
+    <aside class="panel" aria-label="Opciones y lista de piezas">
+      <section class="total" aria-labelledby="total-h">
+        <h2 id="total-h">Precio de la estructura</h2>
+        <div class="total-line"><output class="total-num" id="total"></output><span class="total-vat">IVA incluido</span></div>
+        <p class="kit" id="kitLine"></p>
+        <p class="facts" id="facts"></p>
+        <div class="split" aria-hidden="true"><i id="splitBar"></i></div>
+        <p class="split-legend">
+          <span><i class="key key-prof"></i>Perfiles <b id="splitProf"></b></span>
+          <span><i class="key key-fit"></i>Accesorios <b id="splitFit"></b></span>
+        </p>
+      </section>
+
+      <section aria-labelledby="start-h">
+        <h2 id="start-h">Punto de partida</h2>
+        <div class="preset-grid">
+          <button type="button" class="preset preset-wide" data-preset="esencial" aria-pressed="false"><b>Esencial</b><span>Volante, pedales y cambio, sin soporte de monitor</span></button>
+          <button type="button" class="preset" data-preset="gt" aria-pressed="false"><b>GT</b><span>Asiento erguido, volante cerca</span></button>
+          <button type="button" class="preset" data-preset="formula" aria-pressed="false"><b>Fórmula</b><span>Reclinado y con los pies en alto</span></button>
+          <button type="button" class="preset" data-preset="rally" aria-pressed="false"><b>Rally</b><span>Volante alto e inclinado hacia ti</span></button>
+          <button type="button" class="preset" data-preset="triple" aria-pressed="false"><b>Triple pantalla</b><span>Tres pantallas de 32" en soporte de suelo</span></button>
+        </div>
+      </section>
+
+      <form class="opts" id="opts" autocomplete="off">
+        <section class="group" aria-labelledby="g-frame">
+          <h2 id="g-frame">Estructura</h2>
+          <div class="field">
+            <label for="length">Largo</label><output for="length" id="length-out"></output>
+            <input type="range" id="length" name="length" min="1300" max="1800" step="10">
+          </div>
+          <div class="field">
+            <label for="width">Ancho</label><output for="width" id="width-out"></output>
+            <input type="range" id="width" name="width" min="620" max="720" step="10">
+          </div>
+        </section>
+
+        <section class="group" aria-labelledby="g-seat">
+          <h2 id="g-seat">Asiento</h2>
+          <div class="field">
+            <label for="seatOffset">Posición en los carriles</label><output for="seatOffset" id="seatOffset-out"></output>
+            <input type="range" id="seatOffset" name="seatOffset" min="-90" max="90" step="10">
+          </div>
+          <div class="field">
+            <label for="seatRecline">Inclinación del respaldo</label><output for="seatRecline" id="seatRecline-out"></output>
+            <input type="range" id="seatRecline" name="seatRecline" min="0" max="20" step="1">
+          </div>
+        </section>
+
+        <section class="group" aria-labelledby="g-wheel">
+          <h2 id="g-wheel">Volante</h2>
+          <div class="field">
+            <label for="wheelHeight">Altura del soporte</label><output for="wheelHeight" id="wheelHeight-out"></output>
+            <input type="range" id="wheelHeight" name="wheelHeight" min="600" max="850" step="10">
+          </div>
+          <div class="field">
+            <label for="wheelX">Distancia desde la parte trasera</label><output for="wheelX" id="wheelX-out"></output>
+            <input type="range" id="wheelX" name="wheelX" min="550" max="900" step="10">
+          </div>
+          <div class="field">
+            <label for="wheelTilt">Inclinación</label><output for="wheelTilt" id="wheelTilt-out"></output>
+            <input type="range" id="wheelTilt" name="wheelTilt" min="0" max="20" step="1">
+          </div>
+        </section>
+
+        <section class="group" aria-labelledby="g-pedals">
+          <h2 id="g-pedals">Pedales</h2>
+          <div class="field">
+            <label for="pedalX">Distancia desde la parte trasera</label><output for="pedalX" id="pedalX-out"></output>
+            <input type="range" id="pedalX" name="pedalX" min="800" max="1600" step="10">
+          </div>
+          <div class="field">
+            <span class="label" id="pedalHeight-l">Altura</span>
+            <div class="seg" role="radiogroup" aria-labelledby="pedalHeight-l">
+              <input type="radio" name="pedalHeight" id="pedalHeight-low" value="low"><label for="pedalHeight-low">Baja</label>
+              <input type="radio" name="pedalHeight" id="pedalHeight-medium" value="medium"><label for="pedalHeight-medium">Media</label>
+              <input type="radio" name="pedalHeight" id="pedalHeight-high" value="high"><label for="pedalHeight-high">Alta</label>
+            </div>
+          </div>
+          <div class="field">
+            <span class="label" id="pedalAngle-l">Ángulo</span>
+            <div class="seg" role="radiogroup" aria-labelledby="pedalAngle-l">
+              <input type="radio" name="pedalAngle" id="pedalAngle-0" value="0"><label for="pedalAngle-0">Plano</label>
+              <input type="radio" name="pedalAngle" id="pedalAngle-10" value="10"><label for="pedalAngle-10">10°</label>
+              <input type="radio" name="pedalAngle" id="pedalAngle-20" value="20"><label for="pedalAngle-20">20°</label>
+            </div>
+          </div>
+        </section>
+
+        <section class="group" aria-labelledby="g-arm">
+          <h2 id="g-arm">Cambio y freno de mano</h2>
+          <div class="field">
+            <span class="label" id="sideArm-l">Brazo lateral</span>
+            <div class="seg" role="radiogroup" aria-labelledby="sideArm-l">
+              <input type="radio" name="sideArm" id="sideArm-none" value="none"><label for="sideArm-none">Ninguno</label>
+              <input type="radio" name="sideArm" id="sideArm-right" value="right"><label for="sideArm-right">Derecha</label>
+              <input type="radio" name="sideArm" id="sideArm-left" value="left"><label for="sideArm-left">Izquierda</label>
+            </div>
+          </div>
+        </section>
+
+        <section class="group" aria-labelledby="g-monitor">
+          <h2 id="g-monitor">Monitor</h2>
+          <div class="field">
+            <span class="label" id="monitorStand-l">Soporte</span>
+            <div class="seg" role="radiogroup" aria-labelledby="monitorStand-l">
+              <input type="radio" name="monitorStand" id="monitorStand-none" value="none"><label for="monitorStand-none">Ninguno</label>
+              <input type="radio" name="monitorStand" id="monitorStand-rig" value="rig"><label for="monitorStand-rig">En el cockpit</label>
+              <input type="radio" name="monitorStand" id="monitorStand-floor1" value="floor1"><label for="monitorStand-floor1">De suelo</label>
+              <input type="radio" name="monitorStand" id="monitorStand-floor3" value="floor3"><label for="monitorStand-floor3">Triple</label>
+            </div>
+          </div>
+          <div class="field">
+            <label for="monitorSize">Tamaño</label>
+            <div class="select">
+              <select id="monitorSize" name="monitorSize">
+                <option value="27">27"</option>
+                <option value="32">32"</option>
+                <option value="34uw">34" ultrapanorámico</option>
+                <option value="49suw">49" super ultrapanorámico</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="monitorHeight">Altura del centro de la pantalla</label><output for="monitorHeight" id="monitorHeight-out"></output>
+            <input type="range" id="monitorHeight" name="monitorHeight" min="950" max="1200" step="10">
+          </div>
+        </section>
+
+        <section class="group" aria-labelledby="g-look">
+          <h2 id="g-look">Aspecto</h2>
+          <div class="field">
+            <span class="label" id="finish-l">Perfil</span>
+            <div class="seg" role="radiogroup" aria-labelledby="finish-l">
+              <input type="radio" name="finish" id="finish-natural" value="natural"><label for="finish-natural"><i class="dot" style="--c: #c9ced3"></i>Natural</label>
+              <input type="radio" name="finish" id="finish-black" value="black"><label for="finish-black"><i class="dot" style="--c: #1d2023"></i>Negro</label>
+            </div>
+          </div>
+          <div class="field">
+            <span class="label" id="accent-l">Escuadras y tapas</span>
+            <div class="seg" role="radiogroup" aria-labelledby="accent-l">
+              <input type="radio" name="accent" id="accent-grey" value="grey"><label for="accent-grey"><i class="dot" style="--c: #9aa1a8"></i>Gris</label>
+              <input type="radio" name="accent" id="accent-black" value="black"><label for="accent-black"><i class="dot" style="--c: #1d2023"></i>Negro</label>
+            </div>
+          </div>
+          <label class="switch"><span>Tiras LED en los largueros</span><input type="checkbox" id="led" name="led"><span class="knob" aria-hidden="true"></span></label>
+          <div class="field">
+            <span class="label" id="ledColor-l">Color del LED</span>
+            <div class="swatches" role="radiogroup" aria-labelledby="ledColor-l">
+              <input type="radio" name="ledColor" id="led-ice" value="#33ccff"><label for="led-ice" style="--c: #33ccff"><span class="vh">Azul hielo</span></label>
+              <input type="radio" name="ledColor" id="led-violet" value="#9b5cff"><label for="led-violet" style="--c: #9b5cff"><span class="vh">Violeta</span></label>
+              <input type="radio" name="ledColor" id="led-red" value="#ff3344"><label for="led-red" style="--c: #ff3344"><span class="vh">Rojo</span></label>
+              <input type="radio" name="ledColor" id="led-green" value="#33dd77"><label for="led-green" style="--c: #33dd77"><span class="vh">Verde</span></label>
+              <input type="radio" name="ledColor" id="led-white" value="#f2f2f2"><label for="led-white" style="--c: #f2f2f2"><span class="vh">Blanco</span></label>
+            </div>
+          </div>
+        </section>
+      </form>
+
+      <section class="parts" aria-labelledby="parts-h">
+        <h2 id="parts-h">Lista de piezas</h2>
+        <h3>Perfiles cortados a medida</h3>
+        <ul class="plist" id="profiles"></ul>
+        <h3>Accesorios</h3>
+        <ul class="plist" id="fittings"></ul>
+        <h3>También necesitas</h3>
+        <p class="notes-lead">Mundo Perfil no vende esto, así que no está en el precio:</p>
+        <ul class="notes" id="notes"></ul>
+      </section>
+
+      <footer class="foot">
+        <p>Demo de concepto independiente, sin relación con Mundo Perfil. Los nombres y precios de las piezas son los del catálogo público de mundoperfil.com, consultado el 23 de octubre de 2026, sin IVA. El total aplica un descuento de kit del <span id="kitRate"></span>, que es una propuesta y no un precio de Mundo Perfil, y suma el 21 % de IVA. Mundo Perfil aún no vende perfil negro de ranura 10, así que el negro se muestra al precio del natural.</p>
+        <p>Los perfiles se calculan por metro a partir del precio en el carrito de una pieza de 1000 mm: 13,00 € el 40x40 y 27,00 € el 40x80. Los gastos de corte aún no están confirmados.</p>
+        <p>El asiento, el volante, los pedales, el cambio, el freno de mano y el monitor son modelos 3D del diseño HexRig, incluidos para comprobar cómo encajan.</p>
+      </footer>
+    </aside>
+  </main>
+</div>
+
+<script type="application/json" id="models">/*@MODELS@*/</script>
+<script type="module">
+/*@RIG@*/
+
+const CATALOG = /*@CATALOG@*/;
+
+// ---- Names and number formats ----
+// Spanish as written in Spain. The first entry whose pattern matches a piece id gives that piece its name.
+const SIDE = { left: ['izquierdo', 'izquierda'], right: ['derecho', 'derecha'], rear: ['trasero', 'trasera'], front: ['delantero', 'delantera'] };
+const side = (s, feminine = false) => SIDE[s][feminine ? 1 : 0];
+const PIECE_NAMES = [
+  [/^rail-(\w+)$/, s => `Larguero ${side(s)}`],
+  [/^cross-(\w+)$/, s => `Travesaño ${side(s)}`],
+  [/^seat-cross-(\d)$/, n => `Travesaño ${n} del asiento`],
+  [/^seat-rail-(\w+)$/, s => `Carril ${side(s)} del asiento`],
+  [/^upright-(\w+)$/, s => `Montante ${side(s)} del volante`],
+  [/^deck-bar$/, () => 'Soporte del volante'],
+  [/^pedal-bar-(\w+)$/, s => `Barra ${side(s, true)} de los pedales`],
+  [/^pedal-riser-(\w+)-(\w+)$/, (a, b) => `Poste ${side(a)} ${side(b)} de los pedales`],
+  [/^arm-bracket-(\d)$/, n => `Soporte ${n} del brazo`],
+  [/^arm-(\w+)$/, () => 'Brazo del cambio y el freno de mano'],
+  [/^monitor-post-(\w+)$/, s => `Poste ${side(s)} del monitor`],
+  [/^monitor-link-(\w+)$/, s => `Refuerzo ${side(s)} del monitor`],
+  [/^monitor-bar$/, () => 'Barra del monitor'],
+  [/^stand-foot-(\w+)$/, s => `Pie ${side(s)} del soporte`],
+  [/^stand-upright-(\w+)$/, s => `Montante ${side(s)} del soporte`],
+  [/^stand-bar$/, () => 'Travesaño del soporte'],
+  [/^stand-arm-(\w+)$/, s => `Brazo ${side(s)} de la pantalla lateral`],
+];
+const pieceName = id => {
+  for (const [re, name] of PIECE_NAMES) { const m = id.match(re); if (m) return name(...m.slice(1)); }
+  return id;
+};
+// rig.js writes its "also needed" notes in English
+const NOTES = [
+  [/^Wheel base plate/, 'Placa para la base del volante, sobre el soporte'],
+  [/^Plate for the shifter/, 'Placa para el cambio y el freno de mano'],
+  [/^VESA plates/, 'Placas VESA para los monitores'],
+  [/^VESA plate/, 'Placa VESA para el monitor'],
+];
+const noteName = n => NOTES.find(([re]) => re.test(n))?.[1] ?? n.replace(/\s*\(not from Mundo Perfil\)/, '');
+const nf1 = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const nf2 = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const eur = v => `${nf2.format(v)} €`;
+const pct = r => `${Math.round(r * 100)}\u00a0%`;
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
+const $ = sel => document.querySelector(sel);
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+// ---- Profile cross-section, in mm. The 3D extrusion and the drawings both use it. ----
+const SLOT = { a: 5.1, lip: 4.3, cav: 9.6, mid: 6.1, depth: 12.2, neck: 5.6, bore: 4.2, chamfer: 1.2 };
+
+// Outline of a w x h profile (40 mm modules), counter-clockwise, with a T-slot in the middle of every 40 mm of face
+function sectionOutline(w, h) {
+  const { a, lip, cav, mid, depth, neck, chamfer } = SLOT;
+  const slot = [[0, -a], [lip, -a], [lip, -cav], [mid, -cav], [depth, -neck], [depth, neck], [mid, cav], [lip, cav], [lip, a], [0, a]];
+  const faces = [
+    { o: [w / 2, -h / 2], t: [0, 1], len: h },
+    { o: [w / 2, h / 2], t: [-1, 0], len: w },
+    { o: [-w / 2, h / 2], t: [0, -1], len: h },
+    { o: [-w / 2, -h / 2], t: [1, 0], len: w },
+  ];
+  const pts = [];
+  for (const { o, t, len } of faces) {
+    const n = [t[1], -t[0]]; // outward normal
+    const at = (d, u) => [o[0] + t[0] * d - n[0] * u, o[1] + t[1] * d - n[1] * u];
+    pts.push(at(chamfer, 0));
+    for (let c = 20; c < len; c += 40) for (const [u, v] of slot) pts.push(at(c + v, u));
+    pts.push(at(len - chamfer, 0));
+  }
+  return pts;
+}
+function moduleCentres(w, h) {
+  const out = [];
+  for (let x = -w / 2 + 20; x < w / 2; x += 40) for (let y = -h / 2 + 20; y < h / 2; y += 40) out.push([x, y]);
+  return out;
+}
+function sectionPath(w, h) {
+  const r = SLOT.bore;
+  let d = 'M' + sectionOutline(w, h).map(([x, y]) => `${(x + w / 2).toFixed(2)} ${(h / 2 - y).toFixed(2)}`).join('L') + 'Z';
+  for (const [x, y] of moduleCentres(w, h)) d += `M${x + w / 2 - r} ${h / 2 - y}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0Z`;
+  return d;
+}
+// drawn to scale: 0.4 px per mm
+const sectionSvg = (w, h) => `<svg width="${w * 0.4}" height="${h * 0.4}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="${sectionPath(w, h)}"/></svg>`;
+
+// ---- Presets: the riding position changes, the look stays ----
+const PRESETS = {
+  esencial: { monitorStand: 'none' },
+  gt: {},
+  formula: { seatRecline: 20, wheelHeight: 640, wheelX: 700, wheelTilt: 0, pedalX: 1300, pedalHeight: 'high', pedalAngle: 20, sideArm: 'none', monitorHeight: 990 },
+  rally: { wheelHeight: 770, wheelX: 620, wheelTilt: 10, pedalX: 1250, pedalHeight: 'medium', pedalAngle: 0, sideArm: 'right', monitorHeight: 1110 },
+  triple: { monitorStand: 'floor3', monitorSize: '32', monitorHeight: 1050 },
+};
+const LOOK_KEYS = ['finish', 'accent', 'led', 'ledColor'];
+function presetConfig(name, current) {
+  const c = { ...DEFAULTS, ...PRESETS[name] };
+  for (const k of LOOK_KEYS) c[k] = current[k];
+  return normalize(c);
+}
+const activePreset = c => Object.keys(PRESETS).find(name => {
+  const p = presetConfig(name, c);
+  return Object.keys(DEFAULTS).every(k => p[k] === c[k]);
+});
+
+// ---- State and panel ----
+const form = $('#opts');
+const RANGE_KEYS = ['length', 'width', 'seatOffset', 'seatRecline', 'wheelHeight', 'wheelX', 'wheelTilt', 'pedalX', 'monitorHeight'];
+const CHOICE_KEYS = ['pedalHeight', 'pedalAngle', 'sideArm', 'monitorStand', 'finish', 'accent', 'ledColor'];
+const NUMERIC = new Set([...RANGE_KEYS, 'pedalAngle']);
+let config = normalize({ ...DEFAULTS });
+let result = build(config, CATALOG);
+let view = null; // the 3D view, once it has started
+
+function update(patch) {
+  config = normalize({ ...config, ...patch });
+  result = build(config, CATALOG);
+  syncForm();
+  renderSummary();
+  renderParts();
+  view?.update();
+}
+
+function readout(k, v) {
+  if (k === 'seatOffset') return v === 0 ? 'Centrada' : `${Math.abs(v)} mm hacia ${v > 0 ? 'delante' : 'atrás'}`;
+  if (k === 'seatRecline' || k === 'wheelTilt') return `${v}°`;
+  return `${v} mm`;
+}
+
+function syncForm() {
+  const c = config, el = form.elements;
+  el.pedalX.min = Math.max(LIMITS.pedalX[0], c.wheelX + (c.monitorStand === 'rig' ? 360 : 180));
+  el.pedalX.max = c.length - 200;
+  for (const k of RANGE_KEYS) {
+    const input = el.namedItem(k); // el.length would be the number of fields, not the length slider
+    if (Number(input.value) !== c[k]) input.value = c[k];
+    const min = Number(input.min), max = Number(input.max);
+    input.style.setProperty('--fill', `${max > min ? (c[k] - min) / (max - min) * 100 : 0}%`);
+    $(`#${k}-out`).textContent = readout(k, c[k]);
+  }
+  for (const k of CHOICE_KEYS) for (const r of form.querySelectorAll(`input[name="${k}"]`)) r.checked = r.value === String(c[k]);
+  for (const o of el.monitorSize.options) o.disabled = c.monitorStand === 'floor3' && !MONITORS[o.value].triple;
+  el.monitorSize.value = c.monitorSize;
+  el.monitorSize.disabled = el.monitorHeight.disabled = c.monitorStand === 'none';
+  el.led.checked = c.led;
+  const preset = activePreset(c);
+  for (const b of document.querySelectorAll('[data-preset]')) b.setAttribute('aria-pressed', String(b.dataset.preset === preset));
+}
+
+let shownTotal = null, totalFrame = 0;
+function showTotal(to) {
+  const paint = v => { $('#total').textContent = eur(v); $('#chipTotal').textContent = eur(v); };
+  const from = shownTotal ?? to;
+  cancelAnimationFrame(totalFrame);
+  shownTotal = to;
+  if (from === to || reduceMotion.matches) return paint(to);
+  const t0 = performance.now();
+  const step = now => {
+    const k = Math.min(1, (now - t0) / 280);
+    paint(from + (to - from) * (1 - (1 - k) ** 3));
+    if (k < 1) totalFrame = requestAnimationFrame(step);
+  };
+  totalFrame = requestAnimationFrame(step);
+}
+
+function renderSummary() {
+  const r = result, t = r.totals;
+  const metres = r.profiles.reduce((a, p) => a + p.metres, 0);
+  const fittings = r.fittings.reduce((a, f) => a + f.qty, 0);
+  showTotal(t.gross);
+  $('#kitLine').innerHTML = t.discountRate
+    ? `<b>${eur(t.net)}</b> sin IVA. Catálogo: ${eur(t.catalogue)}, con un ${pct(t.discountRate)} de descuento de kit.`
+    : `<b>${eur(t.net)}</b> sin IVA.`;
+  $('#facts').textContent = `${plural(r.pieces.length, 'corte', 'cortes')} · ${nf2.format(metres)} m de perfil (${nf1.format(t.kg)} kg) · ${plural(fittings, 'accesorio', 'accesorios')}`;
+  $('#chipFacts').textContent = `${plural(r.pieces.length, 'corte', 'cortes')} · ${plural(fittings, 'accesorio', 'accesorios')}`;
+  $('#splitBar').style.width = `${t.profiles / t.catalogue * 100}%`;
+  $('#splitProf').textContent = eur(t.profiles);
+  $('#splitFit').textContent = eur(t.fittings);
+}
+
+function groupCuts(cuts) {
+  const counts = new Map();
+  for (const len of cuts) counts.set(len, (counts.get(len) || 0) + 1);
+  return [...counts].map(([len, n]) => `<span>${n} × ${len} mm</span>`).join('');
+}
+
+function renderParts() {
+  const r = result;
+  const link = item => `<a href="${esc(item.url)}" target="_blank" rel="noopener">${esc(item.name)}</a>`;
+  $('#profiles').innerHTML = r.profiles.map(p => `<li>
+    <span class="sec">${sectionSvg(40, p.id === 'P4080-CS10' ? 80 : 40)}</span>
+    <span class="name">${link(p.finish === 'black' ? { ...p, name: `${p.name}, en negro` } : p)}</span>
+    <span class="sum">${eur(p.total)}</span>
+    <span class="sub">${plural(p.pieces, 'pieza', 'piezas')}, ${nf2.format(p.metres)} m a ${eur(p.perMetre)}/m${p.finish === 'black' ? ' · el negro está por confirmar' : ''}</span>
+    <span class="cuts">${groupCuts(p.cuts)}</span>
+  </li>`).join('');
+  $('#fittings').innerHTML = r.fittings.map(f => `<li>
+    <span class="qty">${f.qty}×</span>
+    <span class="name">${link(r.config.accent === 'black' ? { ...f, name: f.name.replace(' color gris', ' negra') } : f)}</span>
+    <span class="sum">${eur(f.total)}</span>
+    <span class="sub">${eur(f.unit)} por unidad</span>
+  </li>`).join('');
+  // the 3D models shown in the view are not from Mundo Perfil either
+  const pl = r.placements, own = ['el asiento', 'el volante', 'los pedales'];
+  if (pl.sideArm) own.push('el cambio', 'el freno de mano');
+  if (pl.monitors.length) own.push(pl.monitors.length > 1 ? 'los monitores' : 'el monitor');
+  const ownText = `${own.slice(0, -1).join(', ')} y ${own.at(-1)}`;
+  $('#notes').innerHTML = [...r.notes.map(noteName), ownText[0].toUpperCase() + ownText.slice(1)].map(n => `<li>${esc(n)}</li>`).join('');
+}
+
+form.addEventListener('input', e => {
+  const el = e.target;
+  if (!el.name) return;
+  let v = el.type === 'checkbox' ? el.checked : el.value;
+  if (NUMERIC.has(el.name)) v = Number(v);
+  // a black frame gets black caps and brackets too; they can still be changed afterwards
+  update(el.name === 'ledColor' ? { ledColor: v, led: true } : el.name === 'finish' ? { finish: v, accent: v === 'black' ? 'black' : 'grey' } : { [el.name]: v });
+});
+form.addEventListener('submit', e => e.preventDefault());
+for (const b of document.querySelectorAll('[data-preset]')) b.addEventListener('click', () => update(presetConfig(b.dataset.preset, config)));
+for (const b of document.querySelectorAll('[data-view]')) b.addEventListener('click', () => view?.setView(b.dataset.view));
+$('#equipment').addEventListener('change', e => view?.setEquipment(e.target.checked));
+$('#pickClose').addEventListener('click', () => view?.select(null));
+
+$('#kitRate').textContent = pct(CATALOG.kit?.discount ?? 0);
+$('#mark').innerHTML = `<path fill="currentColor" fill-rule="evenodd" d="${sectionPath(40, 40)}"/>`;
+syncForm();
+renderSummary();
+renderParts();
+
+start3D().then(v => { view = v; }).catch(err => {
+  console.error(err);
+  document.body.classList.add('no-3d');
+  const msg = $('#stageMsg');
+  msg.hidden = false;
+  msg.classList.add('is-error');
+  msg.textContent = 'La vista 3D no ha podido iniciarse en este navegador. Las opciones, el precio y la lista de piezas siguen funcionando.';
+});
+
+// ---- 3D view ----
+async function start3D() {
+  const stage = $('#stage');
+  const [THREE, { OrbitControls }, { GLTFLoader }, { RoomEnvironment }] = await Promise.all([
+    import('three'),
+    import('three/addons/controls/OrbitControls.js'),
+    import('three/addons/loaders/GLTFLoader.js'),
+    import('three/addons/environments/RoomEnvironment.js'),
+  ]);
+  const { Matrix4, Vector3 } = THREE;
+  const T = (x, y, z) => new Matrix4().makeTranslation(x, y, z);
+  const S = (x, y, z) => new Matrix4().makeScale(x, y, z);
+  const deg = THREE.MathUtils.degToRad;
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setClearColor(0x000000, 0);
+  renderer.toneMapping = THREE.NeutralToneMapping;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  const canvas = renderer.domElement;
+  canvas.setAttribute('role', 'img');
+  canvas.setAttribute('aria-label', 'Vista 3D del cockpit');
+  stage.prepend(canvas);
+
+  const scene = new THREE.Scene();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  scene.environmentIntensity = 0.85;
+  scene.fog = new THREE.Fog(0xd6dce0, 5, 12);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8d949b, 0.45));
+  const sun = new THREE.DirectionalLight(0xffffff, 2.1);
+  sun.position.set(1.4, 4.2, 2.4);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  Object.assign(sun.shadow.camera, { left: -1.8, right: 1.8, top: 1.8, bottom: -1.8, near: 0.5, far: 10 });
+  sun.shadow.camera.updateProjectionMatrix();
+  sun.shadow.bias = -0.0004;
+  sun.shadow.normalBias = 0.004;
+  scene.add(sun);
+
+  const floorMat = new THREE.ShadowMaterial({ opacity: 0.2 });
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(14, 14), floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  scene.add(floor);
+  let grid = null;
+
+  const camera = new THREE.PerspectiveCamera(35, 1, 0.03, 40);
+  const controls = new OrbitControls(camera, canvas);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.09;
+  controls.minDistance = 0.3;
+  controls.maxDistance = 8;
+  controls.maxPolarAngle = deg(88);
+
+  // The rig is built in millimetres, centred on the origin along its length
+  const rig = new THREE.Group();
+  rig.scale.setScalar(0.001);
+  scene.add(rig);
+  const frame = new THREE.Group();
+  rig.add(frame);
+
+  const geoms = { '4040': profileGeometry(40, 40), '4080': profileGeometry(40, 80) };
+  const matAlu = new THREE.MeshStandardMaterial({ color: 0xc9ced3, metalness: 0.85, roughness: 0.36 });
+  const matPicked = matAlu.clone();
+  matPicked.emissive.set(0xff6a1a);
+  matPicked.emissiveIntensity = 0.55;
+  const matAccent = new THREE.MeshStandardMaterial({ color: 0x9aa1a8, metalness: 0.25, roughness: 0.5 });
+  const caps = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), matAccent, 256);
+  const brackets = new THREE.InstancedMesh(bracketGeometry(), matAccent, 512);
+  for (const im of [caps, brackets]) { im.frustumCulled = false; im.castShadow = true; im.receiveShadow = true; im.count = 0; rig.add(im); }
+
+  const ledMat = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
+  const glowMat = new THREE.MeshBasicMaterial({ color: 0xffffff, map: glowTexture(), transparent: true, depthWrite: false, toneMapped: false, opacity: 0.6 });
+  const leds = [-1, 1].map(side => {
+    const strip = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), ledMat);
+    const glow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), glowMat);
+    for (const m of [strip, glow]) { m.matrixAutoUpdate = false; rig.add(m); }
+    return { side, strip, glow };
+  });
+
+  // Equipment from the HexRig model, placed by rig.js
+  const models = JSON.parse(document.getElementById('models').textContent);
+  const loader = new GLTFLoader();
+  const loadModel = async name => {
+    const bytes = Uint8Array.from(atob(models[name]), ch => ch.charCodeAt(0));
+    const obj = (await loader.parseAsync(bytes.buffer, '')).scene;
+    obj.scale.setScalar(1000); // metres to millimetres
+    obj.traverse(o => {
+      if (!o.isMesh) return;
+      o.castShadow = o.receiveShadow = true;
+      o.material.metalness = 0.2;
+      o.material.roughness = 0.55;
+    });
+    return obj;
+  };
+  const holder = () => { const g = new THREE.Group(); g.matrixAutoUpdate = false; rig.add(g); return g; };
+  const holders = {};
+  for (const [key, names] of [['seat', ['seat']], ['seatBrackets', ['seat-brackets']], ['wheel', ['wheel']], ['wheelbase', ['wheelbase']], ['pedals', ['pedals']], ['sideArm', ['shifter', 'handbrake']]]) {
+    holders[key] = holder();
+    for (const n of names) holders[key].add(await loadModel(n));
+  }
+  const monitorModel = await loadModel('monitor');
+  monitorModel.position.set(...HEX_ANCHORS.monitor.map(v => -v));
+  const screens = [];
+  let showEquipment = true;
+
+  let dirty = true, tween = null, activeView = 'orbit', driving = false, picked = null;
+
+  function profileGeometry(w, h) {
+    const shape = new THREE.Shape(sectionOutline(w, h).map(([x, y]) => new THREE.Vector2(x, y)));
+    for (const [x, y] of moduleCentres(w, h)) {
+      const bore = new THREE.Path();
+      bore.absarc(x, y, SLOT.bore, 0, Math.PI * 2, true);
+      shape.holes.push(bore);
+    }
+    const g = new THREE.ExtrudeGeometry(shape, { depth: 1, bevelEnabled: false, curveSegments: 6 });
+    g.translate(0, 0, -0.5);
+    return g;
+  }
+
+  // An L bracket with its corner at the origin: one leg along +X on the profile, one along +Y on the face it meets
+  function bracketGeometry() {
+    const L = 36, t = 4.5, W = 34;
+    const shape = new THREE.Shape([[0, 0], [L, 0], [L, t], [t + 5, t], [t, t + 5], [t, L], [0, L]].map(([x, y]) => new THREE.Vector2(x, y)));
+    const g = new THREE.ExtrudeGeometry(shape, { depth: W, bevelEnabled: false });
+    g.translate(0, 0, -W / 2);
+    return g;
+  }
+
+  function glowTexture() {
+    const c = document.createElement('canvas');
+    c.width = 4; c.height = 128;
+    const g = c.getContext('2d');
+    const grad = g.createLinearGradient(0, 0, 0, 128);
+    grad.addColorStop(0, 'rgba(255,255,255,0.85)');
+    grad.addColorStop(0.3, 'rgba(255,255,255,0.32)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 4, 128);
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }
+
+  const longAxis = p => p.size.indexOf(Math.max(...p.size));
+  const box = p => ({ min: p.center.map((v, i) => v - p.size[i] / 2), max: p.center.map((v, i) => v + p.size[i] / 2) });
+  const AXES = [new Vector3(1, 0, 0), new Vector3(0, 1, 0), new Vector3(0, 0, 1)];
+
+  // Profile local frame: X across the 40 mm side, Y across the 40 or 80 mm side, Z along the length
+  function pieceBase(p) {
+    const k = longAxis(p), i1 = (k + 1) % 3, i2 = (k + 2) % 3;
+    let x = AXES[i1], y = AXES[i2];
+    if (p.size[i1] > p.size[i2]) [x, y] = [AXES[i2], AXES[i1].clone().negate()];
+    return T(...p.center).multiply(new Matrix4().makeRotationY(deg(p.yaw || 0))).multiply(new Matrix4().makeBasis(x, y, AXES[k]));
+  }
+
+  // Where the brackets of a joint go: in the corners between piece a and the face of piece b it meets
+  function bracketSpots(a, b, big) {
+    if (a.yaw || b.yaw) return [];
+    const A = box(a), B = box(b);
+    const gap = [0, 1, 2].map(i => Math.max(A.min[i] - B.max[i], B.min[i] - A.max[i]));
+    const c = gap.indexOf(Math.max(...gap)); // the axis along which they touch
+    const dir = Math.sign(b.center[c] - a.center[c]) || 1;
+    const ia = longAxis(a), ib = longAxis(b);
+    const spots = [];
+    for (const m of [0, 1, 2].filter(i => i !== c && i !== ia).sort((x, y) => (y === ib) - (x === ib))) {
+      for (const s of [1, -1]) if ((s > 0 ? B.max[m] - A.max[m] : A.min[m] - B.min[m]) >= 30) spots.push([m, s]);
+    }
+    return spots.slice(0, 2).flatMap(([m, s], _, used) => {
+      const w = 3 - c - m;
+      const lo = Math.max(A.min[w], B.min[w]), hi = Math.min(A.max[w], B.max[w]);
+      const offsets = used.length === 1 && hi - lo >= 76 ? [(3 * lo + hi) / 4, (lo + 3 * hi) / 4] : [(lo + hi) / 2];
+      return offsets.map(o => {
+        const p = [0, 0, 0];
+        p[c] = dir > 0 ? A.max[c] : A.min[c];
+        p[m] = s > 0 ? A.max[m] : A.min[m];
+        p[w] = o;
+        const u = AXES[c].clone().multiplyScalar(-dir), v = AXES[m].clone().multiplyScalar(s);
+        const mat = new Matrix4().makeBasis(u, v, new Vector3().crossVectors(u, v)).setPosition(...p);
+        return big ? mat.multiply(S(1.9, 1.9, 1.05)) : mat;
+      });
+    });
+  }
+
+  function placeHolder(h, pl) {
+    h.visible = !!pl && showEquipment;
+    if (!pl) return;
+    const m = T(...pl.offset);
+    if (pl.mirrorZ) m.multiply(S(1, 1, -1));
+    if (pl.pitch) {
+      const [x, y, z] = pl.pivot;
+      m.premultiply(T(-x, -y, -z)).premultiply(new Matrix4().makeRotationZ(deg(pl.pitch))).premultiply(T(x, y, z));
+    }
+    h.matrix.copy(m);
+  }
+
+  function rebuild() {
+    const r = result, c = r.config;
+    rig.position.x = -c.length / 2000;
+    frame.clear();
+    let nCaps = 0;
+    for (const p of r.pieces) {
+      const base = pieceBase(p);
+      const mesh = new THREE.Mesh(geoms[p.profile], p.id === picked ? matPicked : matAlu);
+      mesh.matrixAutoUpdate = false;
+      mesh.matrix.copy(base).multiply(S(1, 1, p.len));
+      mesh.castShadow = mesh.receiveShadow = true;
+      mesh.userData.piece = p;
+      frame.add(mesh);
+      const ends = p.closedEnds === 2 ? [] : p.closedEnds === 1 ? [p.openEnd === 'min' ? -1 : 1] : [-1, 1];
+      for (const e of ends) caps.setMatrixAt(nCaps++, base.clone().multiply(T(0, 0, e * (p.len / 2 + 1.2))).multiply(S(39.2, (p.profile === '4080' ? 80 : 40) - 0.8, 2.4)));
+    }
+    caps.count = nCaps;
+    caps.instanceMatrix.needsUpdate = true;
+
+    const byId = Object.fromEntries(r.pieces.map(p => [p.id, p]));
+    let nBr = 0;
+    for (const j of r.joints) {
+      if (j.type === 'angle') continue;
+      for (const m of bracketSpots(byId[j.a], byId[j.b], j.profile === '4080')) if (nBr < brackets.instanceMatrix.count) brackets.setMatrixAt(nBr++, m);
+    }
+    brackets.count = nBr;
+    brackets.instanceMatrix.needsUpdate = true;
+    matAccent.color.set(c.accent === 'black' ? 0x1d2023 : 0x9aa1a8);
+    // black anodized profiles are darker and a little less mirror-like than natural ones
+    const black = c.finish === 'black';
+    for (const m of [matAlu, matPicked]) { m.color.set(black ? 0x2a2d31 : 0xc9ced3); m.metalness = black ? 0.6 : 0.85; m.roughness = black ? 0.45 : 0.36; }
+
+    const half = c.width / 2;
+    ledMat.color.set(c.ledColor);
+    glowMat.color.set(c.ledColor);
+    for (const { side, strip, glow } of leds) {
+      strip.visible = glow.visible = c.led;
+      strip.matrix.copy(T(c.length / 2, FOOT_H + 60, side * (half - 1.4))).multiply(S(c.length - 30, 8, 2.4));
+      glow.matrix.copy(T(c.length / 2, 1, side * (half + 130))).multiply(new Matrix4().makeRotationY(side < 0 ? Math.PI : 0))
+        .multiply(new Matrix4().makeRotationX(-Math.PI / 2)).multiply(S(c.length + 160, 260, 1));
+    }
+
+    const pl = r.placements;
+    placeHolder(holders.seat, pl.seat);
+    placeHolder(holders.seatBrackets, pl.seatBrackets);
+    placeHolder(holders.wheel, pl.wheel);
+    placeHolder(holders.wheelbase, pl.wheelbase);
+    placeHolder(holders.pedals, pl.pedals);
+    placeHolder(holders.sideArm, pl.sideArm);
+    while (screens.length < pl.monitors.length) { const h = holder(); h.add(monitorModel.clone()); screens.push(h); }
+    screens.forEach((h, i) => {
+      const m = pl.monitors[i];
+      h.visible = !!m && showEquipment;
+      if (m) h.matrix.copy(T(...m.center)).multiply(new Matrix4().makeRotationY(deg(m.yaw))).multiply(S(1, m.height, m.width));
+    });
+
+    if (picked && !byId[picked]) picked = null;
+    showPick();
+    rig.updateMatrixWorld(true);
+    dirty = true;
+  }
+
+  function showPick() {
+    const p = picked && result.pieces.find(q => q.id === picked);
+    $('#pick').hidden = !p;
+    if (!p) return;
+    $('#pickName').textContent = pieceName(p.id);
+    $('#pickInfo').innerHTML = `${p.profile === '4080' ? '40x80' : '40x40'} · corte de <em>${p.len} mm</em>`;
+  }
+
+  function select(id) {
+    picked = id;
+    for (const m of frame.children) m.material = m.userData.piece.id === id ? matPicked : matAlu;
+    showPick();
+    dirty = true;
+  }
+
+  // ---- Camera ----
+  const VIEWS = {
+    orbit: { dir: new Vector3(-0.62, 0.5, 0.8), fov: 35 },
+    side: { dir: new Vector3(0, 0.06, 1), fov: 30 },
+    top: { dir: new Vector3(0, 1, 0.002), fov: 30 },
+  };
+
+  function rigBounds() {
+    rig.updateMatrixWorld(true);
+    const b = new THREE.Box3();
+    for (const m of frame.children) b.expandByObject(m);
+    for (const h of [...Object.values(holders), ...screens]) if (h.visible) b.expandByObject(h);
+    return b;
+  }
+
+  // Camera distance that fits every corner of the box in the frame
+  function fitGoal(dir, fov, b) {
+    const target = b.getCenter(new Vector3());
+    const d = dir.clone().normalize();
+    const right = new Vector3().crossVectors(new Vector3(0, 1, 0), d).normalize();
+    const up = new Vector3().crossVectors(d, right).normalize();
+    const tv = Math.tan(deg(fov / 2)), th = tv * camera.aspect;
+    let dist = 0;
+    for (let i = 0; i < 8; i++) {
+      const q = new Vector3(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).sub(target);
+      const along = q.dot(d);
+      dist = Math.max(dist, along + Math.abs(q.dot(right)) / th, along + Math.abs(q.dot(up)) / tv);
+    }
+    return { target, pos: target.clone().addScaledVector(d, dist * 1.12), fov };
+  }
+
+  const toWorld = ([x, y, z]) => new Vector3(x / 1000 - result.config.length / 2000, y / 1000, z / 1000);
+  function driverGoal() {
+    const c = result.config, [px, py] = result.placements.seat.pivot, a = deg(c.seatRecline);
+    const eye = [px + 110 * Math.cos(a) - 800 * Math.sin(a), py + 110 * Math.sin(a) + 800 * Math.cos(a), 0];
+    const screen = result.placements.monitors[0];
+    return { pos: toWorld(eye), target: toWorld(screen ? screen.center : [c.wheelX + 700, eye[1] - 120, 0]), fov: 58 };
+  }
+
+  function flyTo(goal, instant) {
+    const t0 = controls.target.clone(), f0 = camera.fov;
+    const s0 = new THREE.Spherical().setFromVector3(camera.position.clone().sub(t0));
+    const s1 = new THREE.Spherical().setFromVector3(goal.pos.clone().sub(goal.target));
+    let dTheta = s1.theta - s0.theta;
+    if (dTheta > Math.PI) dTheta -= 2 * Math.PI;
+    if (dTheta < -Math.PI) dTheta += 2 * Math.PI;
+    const dur = instant || reduceMotion.matches ? 0 : 750, start = performance.now(), sph = new THREE.Spherical();
+    tween = now => {
+      const k = dur ? Math.min(1, (now - start) / dur) : 1;
+      const e = k < 0.5 ? 4 * k ** 3 : 1 - (-2 * k + 2) ** 3 / 2;
+      controls.target.lerpVectors(t0, goal.target, e);
+      sph.set(s0.radius + (s1.radius - s0.radius) * e, s0.phi + (s1.phi - s0.phi) * e, s0.theta + dTheta * e);
+      camera.position.setFromSpherical(sph).add(controls.target);
+      camera.fov = f0 + (goal.fov - f0) * e;
+      camera.updateProjectionMatrix();
+      camera.lookAt(controls.target);
+      if (k >= 1) tween = null;
+      dirty = true;
+    };
+    if (!dur) tween(start);
+  }
+
+  function markView(name) {
+    for (const b of document.querySelectorAll('[data-view]')) b.setAttribute('aria-pressed', String(b.dataset.view === name));
+  }
+
+  function setView(name, instant = false) {
+    activeView = name;
+    markView(name);
+    flyTo(name === 'driver' ? driverGoal() : fitGoal(VIEWS[name].dir, VIEWS[name].fov, rigBounds()), instant);
+  }
+
+  controls.addEventListener('start', () => { driving = true; });
+  controls.addEventListener('end', () => { driving = false; });
+  controls.addEventListener('change', () => {
+    dirty = true;
+    if (driving && activeView) { activeView = null; tween = null; markView(null); }
+  });
+
+  // Tap a profile to see what it is and how long to cut it
+  const raycaster = new THREE.Raycaster(), ndc = new THREE.Vector2();
+  let down = null;
+  canvas.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; });
+  canvas.addEventListener('pointerup', e => {
+    if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
+    const rect = canvas.getBoundingClientRect();
+    ndc.set((e.clientX - rect.left) / rect.width * 2 - 1, -(e.clientY - rect.top) / rect.height * 2 + 1);
+    raycaster.setFromCamera(ndc, camera);
+    const targets = [...frame.children, ...Object.values(holders), ...screens].filter(o => o.visible);
+    const hit = raycaster.intersectObjects(targets, true)[0];
+    select(hit?.object.userData.piece?.id ?? null);
+  });
+
+  // Theme colours come from the page tokens
+  function applyTheme() {
+    const css = getComputedStyle(document.documentElement);
+    const color = name => new THREE.Color(css.getPropertyValue(name).trim() || '#888888');
+    const stageColor = color('--stage');
+    scene.fog.color.copy(stageColor);
+    if (grid) { scene.remove(grid); grid.geometry.dispose(); grid.material.dispose(); }
+    grid = new THREE.GridHelper(4, 40, color('--grid-strong'), color('--grid'));
+    grid.position.y = 0.0005;
+    scene.add(grid);
+    floorMat.opacity = stageColor.getHSL({}).l < 0.3 ? 0.55 : 0.2;
+    dirty = true;
+  }
+  applyTheme();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+  new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class', 'style'] });
+
+  new ResizeObserver(() => {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    dirty = true;
+  }).observe(stage);
+  camera.aspect = Math.max(stage.clientWidth, 1) / Math.max(stage.clientHeight, 1);
+  renderer.setSize(stage.clientWidth || 1, stage.clientHeight || 1, false);
+
+  rebuild();
+  setView('orbit', true);
+  $('#stageMsg').hidden = true;
+
+  renderer.setAnimationLoop(now => {
+    if (controls.update()) dirty = true;
+    if (tween) tween(now);
+    if (!dirty) return;
+    dirty = false;
+    renderer.render(scene, camera);
+  });
+
+  return {
+    update() {
+      rebuild();
+      if (activeView === 'driver') setView('driver', true);
+    },
+    setView,
+    setEquipment(on) { showEquipment = on; rebuild(); },
+    select,
+  };
+}
+</script>

@@ -1,0 +1,27 @@
+model_part,role,profile,length_mm,free_ends,butt_ends,axis,center_mm
+Component11:1,Pedal deck rail (sloped 4°),P4040-CS10,862.0,2,0,0.998 0.07 -0.0,2926.0 751.5 -522.8
+Component11:2,Pedal deck rail (sloped 4°),P4040-CS10,862.0,2,0,0.998 0.07 -0.0,2926.0 751.5 2.1
+Component9:1,Monitor cross bar,P4040-CS10,564.9,2,0,0.0 -0.0 1.0,2667.4 1536.5 -260.3
+Component10:1,Front upright,P4040-CS10,549.6,2,0,-0.0 1.0 0.0,2983.8 773.1 -562.8
+Component10:2,Front upright,P4040-CS10,549.6,2,0,-0.0 1.0 0.0,2983.8 773.1 42.1
+4524N12_T-Slotted Framing Hollow Rail:1,Cross member under the seat,P4040-CS10,484.9,0,2,0.0 -0.0 1.0,3023.8 558.3 -260.3
+4524N12_T-Slotted Framing Hollow Rail:2,Cross member under the seat,P4040-CS10,484.9,0,2,0.0 -0.0 1.0,2299.9 558.3 -260.3
+4524N12_T-Slotted Framing Hollow Rail:3,Cross member under the seat,P4040-CS10,484.9,0,2,0.0 -0.0 1.0,1929.9 558.3 -260.3
+Component12:1,Pedal cross bar,P4040-CS10,484.9,0,2,0.0 -0.0 1.0,3336.0 780.2 -260.3
+Component12:2,Pedal cross bar,P4040-CS10,484.9,0,2,0.0 -0.0 1.0,3106.6 764.2 -260.3
+Component3:1,Seat rail,P4040-CS10,431.8,2,0,1.0 0.0 -0.0,2136.6 598.3 -443.3
+Component3:2,Seat rail,P4040-CS10,431.8,2,0,1.0 0.0 -0.0,2136.6 598.3 -77.4
+Component7:1,Monitor upright,P4040-CS10,355.6,2,0,-0.0 1.0 0.0,2707.4 1341.9 -562.8
+Component7:2,Monitor upright,P4040-CS10,355.6,2,0,-0.0 1.0 0.0,2707.4 1341.9 42.1
+Component8:1,Monitor arm,P4040-CS10,240.0,2,0,1.0 0.0 -0.0,2767.4 1496.5 -522.8
+Component8:2,Monitor arm,P4040-CS10,240.0,2,0,1.0 0.0 -0.0,2767.4 1496.5 2.1
+Component14:1,Shifter and handbrake bracket,P4040-CS10,181.0,1,1,0.0 -0.0 1.0,2133.5 928.3 192.6
+Component14:2,Shifter and handbrake bracket,P4040-CS10,181.0,1,1,0.0 -0.0 1.0,2293.5 928.3 192.6
+4524N32_T-Slotted Framing Hollow Rail:1,Base rail,P4080-CS10,1133.9,2,0,1.0 0.0 -0.0,2476.9 538.3 2.1
+4524N32_T-Slotted Framing Hollow Rail:2,Base rail,P4080-CS10,1133.9,2,0,1.0 0.0 -0.0,2476.9 538.3 -522.8
+Component4:1,Wheel upright,P4080-CS10,812.8,2,0,-0.0 1.0 0.0,2479.9 904.7 42.1
+Component4:2,Wheel upright,P4080-CS10,812.8,2,0,-0.0 1.0 0.0,2479.9 904.7 -562.8
+Component5:1,Wheel base cross bar,P4080-CS10,548.9,2,0,0.0 -0.0 1.0,2479.9 1156.1 -260.3
+Component13:1,Shifter and handbrake arm,P4080-CS10,406.4,2,0,1.0 0.0 -0.0,2316.7 908.3 82.1
+Component6:1,Wheel deck arm,P4080-CS10,327.5,2,0,1.0 0.0 -0.0,2603.6 1204.1 -602.8
+Component6:2,Wheel deck arm,P4080-CS10,327.5,2,0,1.0 0.0 -0.0,2603.6 1204.1 82.1
