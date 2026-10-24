@@ -18,7 +18,7 @@ export const DEFAULTS = {
   monitorSize: '34uw',
   monitorHeight: 1070, // centre of the screen above the floor
   finish: 'natural',  // profiles: 'natural' | 'black'
-  accent: 'grey',      // end caps and brackets: 'grey' | 'black'
+  accent: 'grey',      // end caps and brackets: 'grey' | 'black', always follows finish
   led: false,
   ledColor: '#33ccff',
 };
@@ -62,6 +62,7 @@ export function normalize(input) {
   const c = { ...DEFAULTS, ...input };
   for (const k of Object.keys(LIMITS)) c[k] = clamp(Number(c[k]), LIMITS[k]);
   c.pedalX = clamp(c.pedalX, [Math.max(LIMITS.pedalX[0], c.wheelX + (c.monitorStand === 'rig' ? 360 : 180)), c.length - 200]);
+  c.accent = c.finish === 'black' ? 'black' : 'grey';
   if (!MONITORS[c.monitorSize]) c.monitorSize = DEFAULTS.monitorSize;
   if (c.monitorStand === 'floor3' && !MONITORS[c.monitorSize].triple) c.monitorSize = '27';
   return c;

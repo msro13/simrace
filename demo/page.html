@@ -128,6 +128,23 @@ button, select, input { font: inherit; color: inherit; }
 .split i { display: block; background: var(--accent); transition: width .25s ease; }
 .split-legend { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0; font-size: 13.5px; color: var(--muted); }
 .split-legend b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+.btn { font: 600 14px/1.2 var(--body); padding: 11px 12px; border: 1px solid var(--line); border-radius: 7px; background: var(--raised); color: var(--ink); cursor: pointer; }
+.btn:hover { border-color: var(--grid-strong); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn-main { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
+.btn-main:hover { border-color: var(--accent); filter: brightness(1.08); }
+.status { margin: 0; font-size: 13px; line-height: 1.4; color: var(--muted); overflow-wrap: anywhere; }
+.status:empty { display: none; }
+.quote { display: grid; gap: 12px; padding-top: 18px; border-top: 1px solid var(--line); scroll-margin-top: 16px; }
+.quote h2 { margin: 0; }
+.quote-lead { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--muted); }
+.quote form { display: grid; gap: 12px; }
+.quote label { display: grid; gap: 5px; font-weight: 500; }
+.quote label span { font-weight: 400; color: var(--muted); }
+.quote input, .quote textarea { box-sizing: border-box; width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--bg); color: var(--ink); font: 400 16px/1.3 var(--body); }
+.quote textarea { min-height: 76px; resize: vertical; }
+.quote input:focus-visible, .quote textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .key { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 2px; vertical-align: 1px; }
 .key-prof { background: var(--accent); }
 .key-fit { background: var(--grid-strong); }
@@ -269,6 +286,11 @@ input[type="range"]:disabled { opacity: .4; cursor: not-allowed; }
           <span><i class="key key-prof"></i>Perfiles <b id="splitProf"></b></span>
           <span><i class="key key-fit"></i>Accesorios <b id="splitFit"></b></span>
         </p>
+        <div class="actions">
+          <button type="button" class="btn" id="share">Compartir diseño</button>
+          <button type="button" class="btn btn-main" id="toQuote">Pedir presupuesto</button>
+        </div>
+        <p class="status" id="shareMsg" role="status"></p>
       </section>
 
       <section aria-labelledby="start-h">
@@ -390,17 +412,10 @@ input[type="range"]:disabled { opacity: .4; cursor: not-allowed; }
         <section class="group" aria-labelledby="g-look">
           <h2 id="g-look">Aspecto</h2>
           <div class="field">
-            <span class="label" id="finish-l">Perfil</span>
+            <span class="label" id="finish-l">Color</span>
             <div class="seg" role="radiogroup" aria-labelledby="finish-l">
-              <input type="radio" name="finish" id="finish-natural" value="natural"><label for="finish-natural"><i class="dot" style="--c: #c9ced3"></i>Natural</label>
+              <input type="radio" name="finish" id="finish-natural" value="natural"><label for="finish-natural"><i class="dot" style="--c: #c9ced3"></i>Aluminio</label>
               <input type="radio" name="finish" id="finish-black" value="black"><label for="finish-black"><i class="dot" style="--c: #1d2023"></i>Negro</label>
-            </div>
-          </div>
-          <div class="field">
-            <span class="label" id="accent-l">Escuadras y tapas</span>
-            <div class="seg" role="radiogroup" aria-labelledby="accent-l">
-              <input type="radio" name="accent" id="accent-grey" value="grey"><label for="accent-grey"><i class="dot" style="--c: #9aa1a8"></i>Gris</label>
-              <input type="radio" name="accent" id="accent-black" value="black"><label for="accent-black"><i class="dot" style="--c: #1d2023"></i>Negro</label>
             </div>
           </div>
           <label class="switch"><span>Tiras LED en los largueros</span><input type="checkbox" id="led" name="led"><span class="knob" aria-hidden="true"></span></label>
@@ -428,8 +443,22 @@ input[type="range"]:disabled { opacity: .4; cursor: not-allowed; }
         <ul class="notes" id="notes"></ul>
       </section>
 
+      <section class="quote" id="quote" aria-labelledby="quote-h">
+        <h2 id="quote-h">Pedir presupuesto</h2>
+        <p class="quote-lead">Mándanos este diseño y te respondemos con el precio final, el plazo y los gastos de envío. No pagas nada hasta que lo confirmes.</p>
+        <form id="quoteForm">
+          <label>Nombre<input name="name" required autocomplete="name"></label>
+          <label>Correo electrónico<input type="email" name="email" required autocomplete="email"></label>
+          <label>Teléfono <span>(opcional)</span><input type="tel" name="phone" autocomplete="tel"></label>
+          <label>Código postal<input name="zip" required autocomplete="postal-code" inputmode="numeric" maxlength="10"></label>
+          <label>Comentarios <span>(opcional)</span><textarea name="notes" placeholder="Por ejemplo, qué volante y pedales tienes"></textarea></label>
+          <button type="submit" class="btn btn-main">Enviar solicitud</button>
+        </form>
+        <p class="status" id="quoteMsg" role="status"></p>
+      </section>
+
       <footer class="foot">
-        <p>Demo de concepto independiente, sin relación con Mundo Perfil. Los nombres y precios de las piezas son los del catálogo público de mundoperfil.com, consultado el 23 de octubre de 2026, sin IVA. El total aplica un descuento de kit del <span id="kitRate"></span>, que es una propuesta y no un precio de Mundo Perfil, y suma el 21 % de IVA. Mundo Perfil aún no vende perfil negro de ranura 10, así que el negro se muestra al precio del natural.</p>
+        <p>Demo de concepto independiente, sin relación con Mundo Perfil. Los nombres y precios de las piezas son los del catálogo público de mundoperfil.com, consultado el 23 de octubre de 2026, sin IVA. El total aplica un descuento de kit del <span id="kitRate"></span>, que es una propuesta y no un precio de Mundo Perfil, y suma el 21 % de IVA. Mundo Perfil aún no vende perfil negro de ranura 10, así que el negro se muestra al precio del aluminio.</p>
         <p>Los perfiles se calculan por metro a partir del precio en el carrito de una pieza de 1000 mm: 13,00 € el 40x40 y 27,00 € el 40x80. Los gastos de corte aún no están confirmados.</p>
         <p>El asiento, el volante, los pedales, el cambio, el freno de mano y el monitor son modelos 3D del diseño HexRig, incluidos para comprobar cómo encajan.</p>
       </footer>
@@ -532,7 +561,7 @@ const PRESETS = {
   rally: { wheelHeight: 770, wheelX: 620, wheelTilt: 10, pedalX: 1250, pedalHeight: 'medium', pedalAngle: 0, sideArm: 'right', monitorHeight: 1110 },
   triple: { monitorStand: 'floor3', monitorSize: '32', monitorHeight: 1050 },
 };
-const LOOK_KEYS = ['finish', 'accent', 'led', 'ledColor'];
+const LOOK_KEYS = ['finish', 'led', 'ledColor'];
 function presetConfig(name, current) {
   const c = { ...DEFAULTS, ...PRESETS[name] };
   for (const k of LOOK_KEYS) c[k] = current[k];
@@ -546,9 +575,9 @@ const activePreset = c => Object.keys(PRESETS).find(name => {
 // ---- State and panel ----
 const form = $('#opts');
 const RANGE_KEYS = ['length', 'width', 'seatOffset', 'seatRecline', 'wheelHeight', 'wheelX', 'wheelTilt', 'pedalX', 'monitorHeight'];
-const CHOICE_KEYS = ['pedalHeight', 'pedalAngle', 'sideArm', 'monitorStand', 'finish', 'accent', 'ledColor'];
+const CHOICE_KEYS = ['pedalHeight', 'pedalAngle', 'sideArm', 'monitorStand', 'finish', 'ledColor'];
 const NUMERIC = new Set([...RANGE_KEYS, 'pedalAngle']);
-let config = normalize({ ...DEFAULTS });
+let config = normalize({ ...DEFAULTS, ...configFromHash(location.hash) });
 let result = build(config, CATALOG);
 let view = null; // the 3D view, once it has started
 
@@ -559,6 +588,27 @@ function update(patch) {
   renderSummary();
   renderParts();
   view?.update();
+  try { history.replaceState(null, '', configToHash(config) || location.pathname + location.search); } catch {}
+}
+
+// ---- Share links: the options that differ from the defaults go in the address after #, e.g. #length=1600&sideArm=left ----
+function configToHash(c) {
+  const params = new URLSearchParams();
+  for (const k of Object.keys(DEFAULTS)) if (k !== 'accent' && c[k] !== DEFAULTS[k]) params.set(k, c[k]); // accent follows the colour
+  const s = params.toString();
+  return s ? `#${s}` : '';
+}
+// keeps only known options with values the panel offers, so a mangled link still opens a valid cockpit
+function configFromHash(hash) {
+  const c = {};
+  for (const [k, v] of new URLSearchParams(hash.replace(/^#/, ''))) {
+    if (!(k in DEFAULTS)) continue;
+    if (RANGE_KEYS.includes(k)) { if (v !== '' && Number.isFinite(Number(v))) c[k] = Number(v); }
+    else if (k === 'led') c.led = v === 'true';
+    else if (k === 'monitorSize') { if (v in MONITORS) c.monitorSize = v; }
+    else if ([...form.querySelectorAll(`input[name="${k}"]`)].some(r => r.value === v)) c[k] = NUMERIC.has(k) ? Number(v) : v;
+  }
+  return c;
 }
 
 function readout(k, v) {
@@ -653,14 +703,61 @@ form.addEventListener('input', e => {
   if (!el.name) return;
   let v = el.type === 'checkbox' ? el.checked : el.value;
   if (NUMERIC.has(el.name)) v = Number(v);
-  // a black frame gets black caps and brackets too; they can still be changed afterwards
-  update(el.name === 'ledColor' ? { ledColor: v, led: true } : el.name === 'finish' ? { finish: v, accent: v === 'black' ? 'black' : 'grey' } : { [el.name]: v });
+  update(el.name === 'ledColor' ? { ledColor: v, led: true } : { [el.name]: v });
 });
 form.addEventListener('submit', e => e.preventDefault());
 for (const b of document.querySelectorAll('[data-preset]')) b.addEventListener('click', () => update(presetConfig(b.dataset.preset, config)));
 for (const b of document.querySelectorAll('[data-view]')) b.addEventListener('click', () => view?.setView(b.dataset.view));
 $('#equipment').addEventListener('change', e => view?.setEquipment(e.target.checked));
 $('#pickClose').addEventListener('click', () => view?.select(null));
+addEventListener('hashchange', () => update({ ...DEFAULTS, ...configFromHash(location.hash) }));
+
+$('#share').addEventListener('click', async () => {
+  const url = location.href, msg = $('#shareMsg');
+  try {
+    if (navigator.share && matchMedia('(pointer: coarse)').matches) return await navigator.share({ title: 'Mi cockpit', url });
+    await navigator.clipboard.writeText(url);
+    msg.textContent = 'Enlace copiado. Quien lo abra verá este mismo cockpit.';
+  } catch (e) {
+    if (e.name !== 'AbortError') msg.textContent = `Copia este enlace: ${url}`;
+  }
+});
+$('#toQuote').addEventListener('click', () => {
+  $('#quote').scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+  $('#quoteForm').elements.name.focus({ preventScroll: true });
+});
+
+// ---- Quote request: opens the visitor's mail app with the design and its parts list ----
+// Where requests go. Empty: the request is copied so the visitor can send it themselves.
+const QUOTE_EMAIL = '';
+function quoteText(d) {
+  const r = result, t = r.totals;
+  const lines = [`Nombre: ${d.name}`, `Correo: ${d.email}`];
+  if (d.phone) lines.push(`Teléfono: ${d.phone}`);
+  lines.push(`Código postal: ${d.zip}`);
+  if (d.notes) lines.push('', `Comentarios: ${d.notes}`);
+  lines.push('', `Diseño: ${location.href}`, `Precio mostrado: ${eur(t.gross)} con IVA (${eur(t.net)} sin IVA)`, '', 'Perfiles cortados a medida:');
+  for (const p of r.profiles) lines.push(`- ${p.name}${p.finish === 'black' ? ', en negro' : ''}: ${p.cuts.join(', ')} mm`);
+  lines.push('', 'Accesorios:');
+  for (const f of r.fittings) lines.push(`- ${f.qty} × ${f.name}`);
+  return lines.join('\n');
+}
+$('#quoteForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const d = Object.fromEntries([...new FormData(e.target)].map(([k, v]) => [k, String(v).trim()]));
+  const text = quoteText(d), msg = $('#quoteMsg');
+  if (QUOTE_EMAIL) {
+    location.href = `mailto:${QUOTE_EMAIL}?subject=${encodeURIComponent(`Presupuesto de cockpit, ${eur(result.totals.gross)}`)}&body=${encodeURIComponent(text)}`;
+    msg.textContent = 'Se ha abierto tu programa de correo con la solicitud. Revísala y pulsa Enviar.';
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    msg.textContent = 'Solicitud copiada. Pégala en un correo y envíala.';
+  } catch {
+    msg.textContent = 'No se ha podido copiar la solicitud.';
+  }
+});
 
 $('#kitRate').textContent = pct(CATALOG.kit?.discount ?? 0);
 $('#mark').innerHTML = `<path fill="currentColor" fill-rule="evenodd" d="${sectionPath(40, 40)}"/>`;
@@ -906,6 +1003,12 @@ async function start3D() {
     // black anodized profiles are darker and a little less mirror-like than natural ones
     const black = c.finish === 'black';
     for (const m of [matAlu, matPicked]) { m.color.set(black ? 0x2a2d31 : 0xc9ced3); m.metalness = black ? 0.6 : 0.85; m.roughness = black ? 0.45 : 0.36; }
+    // the two seat plates take the frame colour as well
+    holders.seatBrackets.traverse(o => {
+      if (!o.isMesh) return;
+      o.userData.color ??= o.material.color.getHex();
+      o.material.color.set(black ? 0x1d2023 : o.userData.color);
+    });
 
     const half = c.width / 2;
     ledMat.color.set(c.ledColor);
